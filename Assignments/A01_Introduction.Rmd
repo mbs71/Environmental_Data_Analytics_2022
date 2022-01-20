@@ -1,6 +1,6 @@
 ---
 title: "Assignment 1: Introduction"
-author: "Student Name"
+author: "Meghan Seyler"
 output: pdf_document
 geometry: margin=2.54cm
 ---
@@ -22,21 +22,22 @@ The completed exercise is due on <>.
 
 1. What are your previous experiences with data analytics, R, and Git? Include both formal and informal training.
 
-> Answer: 
+> Answer:My primary experience using R is from the introductory statistics course taught by Betsy Albright at the Nic School. I took that course in the Fall of 2020. I have basically no experience with Git other than the fact that I knew what it was and some of its basic functions.
 
 2. Are there any components of the course about which you feel confident?
 
-> Answer: 
+> Answer: I feel comfortable navigating R, knitting files, and google searching the things that I don’t know.
 
 3. Are there any components of the course about which you feel apprehensive?
 
-> Answer: 
+> Answer: The general set up with the cisco software/VPN, windows emulator, etc. was the most difficult part and I would have preferred to do that portion of the class in person (although I know that wasn’t an option this year).
 
 
 ## 2) GitHub
 
 Provide a link below to your forked course repository in GitHub. Make sure you have pulled all recent changes from the course repository  and that you have updated your course README file. 
 
-> Answer: 
+> Answer: [Link to Meghan's forked course repository](https://github.com/mbs71/Environmental_Data_Analytics_2022)
+
 
 
