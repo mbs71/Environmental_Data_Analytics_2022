@@ -1,7 +1,7 @@
 ---
 title: "5: Data Exploration"
 author: "Environmental Data Analytics | John Fay and Luana Lima | Developed by Kateri Salk"
-date: "Spring 2022"
+date: "January 26 Spring 2022"
 output: pdf_document
 geometry: margin=2.54cm
 fig_width: 5
@@ -53,12 +53,19 @@ Although the `summary()` function is helpful in getting an idea of the spread of
 
 Note: each of these approaches utilize the package "ggplot2". We will be covering the syntax of ggplot in a later lesson, but for now you should familiarize yourself with the functionality of what each command is doing.
 
+Numerical data = measured data, the values have meaning, also have continuous or discrete values
+Categorical data = letters that represent a category example USGS 
+Nominal data = example site name or gauge ID that is a number
+
 ### Bar Chart (function: geom_bar)
 
 Visualize count data for categorical variables. 
 
 ```{r, fig.height = 3, fig.width = 4}
 ggplot(USGS.flow.data, aes(x = discharge.mean.approval)) +
+  geom_bar()
+
+ggplot(na.omit(USGS.flow.data),aes(x = discharge.mean.approval))+
   geom_bar()
 ```
 
@@ -67,24 +74,24 @@ ggplot(USGS.flow.data, aes(x = discharge.mean.approval)) +
 Visualize distributions of values for continuous numerical variables. What is happening in each line of code? Insert a comment above each line.
 
 ```{r, fig.height = 3, fig.width = 4}
-#
+#A lot of the data has 0 charge. It is a skewed distribution toward zero. 
 ggplot(USGS.flow.data) +
   geom_histogram(aes(x = discharge.mean))
 
-#
+#Change binwidth to 10. We get a lot more bins and more separated data.
 ggplot(USGS.flow.data) +
   geom_histogram(aes(x = discharge.mean), binwidth = 10)
 
-#
+#Specifying number of bins. To find default bins go to geom_histogram help and see that the default binwidth is 30. So setting the binwidth to 
 ggplot(USGS.flow.data) +
   geom_histogram(aes(x = discharge.mean), bins = 20)
 
-#
+#scale_xc_continuous forces the x value to go from 0 to 500. It is a way of zooming in on the histogram. 
 ggplot(USGS.flow.data, aes(x = discharge.mean)) +
   geom_histogram(binwidth = 10) + 
   scale_x_continuous(limits = c(0, 500))
   
-#
+#Showing there is a peak that is past zero? Play around with it to see if you can see differnt patterns in the data or if you set the bin to 2 you may not see the dip in the data.
 ggplot(USGS.flow.data) +
   geom_histogram(aes(x = gage.height.mean))
 
@@ -93,15 +100,16 @@ ggplot(USGS.flow.data) +
 
 An alternate to a histogram is a frequency polygon graph (distributions of values for continuous numerical variables). Instead of displaying bars,  counts of continuous variables are displayed as lines. This is advantageous if you want to display multiple variables or categories of variables at once.
 
+CHEAT SHEET - Help -> Cheatsheets -> Data Visualization with ggplot2
 ```{r, fig.height = 3, fig.width = 4}
-#
+#Compare histogram and line graph (lines 106,7,8)
 ggplot(USGS.flow.data) +
   geom_freqpoly(aes(x = gage.height.mean), bins = 50) +
-  geom_freqpoly(aes(x = gage.height.min), bins = 50, color = "darkgray") +
+  geom_freqpoly(aes(x = gage.height.min), bins = 50, color = "red") +
   geom_freqpoly(aes(x = gage.height.max), bins = 50,  lty = 2) +
   scale_x_continuous(limits = c(0, 10))
 
-#
+#Look at gage.height.min but color the values by mean.approval
 ggplot(USGS.flow.data) +
   geom_freqpoly(aes(x = gage.height.mean, color = gage.height.mean.approval), bins = 50) +
   scale_x_continuous(limits = c(0, 10)) +
@@ -123,15 +131,15 @@ A box-and-whisker plot is yet another alternative to histograms (distributions o
 An alternate option is a violin plot, which displays density distributions, somewhat like a hybrid of the box-and-whiskers and the frequency polygon plot.
 
 ```{r, fig.height = 3, fig.width = 4}
-#
+#supplying a numeric value (the x value) and parsing the data into two data sets with the y variable. The Box plot of all approved values shows the median value
 ggplot(USGS.flow.data) +
   geom_boxplot(aes(x = gage.height.mean.approval, y = gage.height.mean))
 
-#
+#Taking the distribution of the data and slicing it kind of like a histogram and instead of showing how many records that fall into those slices its showing the distribution of values in the gauge height mean and we're seeing the variance across different slices of data. So we're looking at multiple dimensions of our data. WE have two numeric categories . Instead of looking at counts we're looking at distributions along those . It is showing us that at low values of gauge height we have tight values (lower distribution).
 ggplot(USGS.flow.data) +
   geom_boxplot(aes(x = gage.height.mean, y = discharge.mean, group = cut_width(gage.height.mean, 1)))
 
-#
+#Violin plots show us the range of values and the distribution within that range. The width is how many data points are at that value of the plot.
 ggplot(USGS.flow.data) +
   geom_violin(aes(x = gage.height.mean.approval, y = gage.height.mean), 
               draw_quantiles = c(0.25, 0.5, 0.75))
@@ -144,6 +152,7 @@ Visualize relationships between continuous numerical variables.
 ggplot(USGS.flow.data) +
   geom_point(aes(x = discharge.mean, y = gage.height.mean))
 
+#mean discharge at different times. Notice data is missing from 1970-1990.
 ggplot(USGS.flow.data) +
   geom_point(aes(x = datetime, y = discharge.mean))
 ```
