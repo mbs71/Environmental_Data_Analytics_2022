@@ -91,14 +91,13 @@ studentscores
 11. Apply your function to the vector with test scores that you created in number 5. 
 
 ```{r}
-determinepass<- function (x) {
-  if(x>=50) 
-    x==TRUE
-  else {x==FALSE}
-}
-determinepass(49)
+determinepass<- if(testscores>=50) {"Pass"} else{"Fail"}
+print(determinepass)
+
+determinepass2<-ifelse(testscores>=50, "Pass","Fail")
+print(determinepass2)
 ```
 
 12. QUESTION: Which option of `if` and `else` vs. `ifelse` worked? Why?
 
-> Answer: 
+> Answer: The 'ifelse' option worked better because in 'if' and 'else' only the first element was used, so it only indicated if the first test score was a pass or fail. 
