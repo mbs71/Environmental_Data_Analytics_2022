@@ -8,6 +8,8 @@ editor_options:
   chunk_output_type: console
 ---
 
+
+
 ## Objectives
 
 1. Discuss the benefits and approach for reproducible data analysis
