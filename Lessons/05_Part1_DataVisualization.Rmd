@@ -87,7 +87,7 @@ print(O3plot)
 
 # Fix this code
 O3plot2 <- ggplot(EPAair) +
-  #geom_point(aes(x = Date, y = Ozone, color = "blue"))
+  #geom_point(aes(x = Date, y = Ozone, color = "blue")) this added a legend but did not change the color
   geom_point(aes(x = Date, y = Ozone), color = "blue")
 print(O3plot2)
 
@@ -102,7 +102,7 @@ print(PMplot)
 PMplot.faceted <-
   ggplot(EPAair, aes(x = Month, y = PM2.5, shape = as.factor(Year))) +
   geom_point() +
-  facet_wrap(vars(Site.Name), nrow = 3)
+  facet_wrap(vars(Site.Name), nrow = 3) #creating one plot for each site
 print(PMplot.faceted)
 
 # Filter dataset within plot building and facet by multiple variables
@@ -111,13 +111,13 @@ PMplot.faceted2 <-
                   Site.Name == "Bryson City"), 
          aes(x = Month, y = PM2.5)) + 
   geom_point() +
-  facet_grid(Site.Name ~ Year) 
+  facet_grid(Site.Name ~ Year) #columns representing year and rows are the sites
 print(PMplot.faceted2)
 
 # Plot true time series with geom_line
 PMplot.line <- 
   ggplot(subset(EPAair, Site.Name == "Leggett"), 
-         aes(x = Date, y = PM2.5)) +
+         aes(x = Date, y = PM2.5)) + #change x axis for line plot to date so its a time series
   geom_line()
 print(PMplot.line)
 
@@ -129,6 +129,7 @@ print(PMplot.line)
 
 ```{r, fig.height = 3, fig.width = 4, warning = FALSE}
 # Scatterplot
+# this is not a nice visualization because two of the points are so far from the others. You should adjust the axex - see the next code line 138
 lightvsDO <- 
   ggplot(PeterPaul.chem.nutrients, aes(x = irradianceWater, y = dissolvedOxygen)) +
   geom_point()
@@ -147,13 +148,13 @@ tempvsdepth <-
   ggplot(PeterPaul.chem.nutrients, aes(x = temperature_C, y = depth)) +
   #ggplot(PeterPaul.chem.nutrients, aes(x = temperature_C, y = depth, color = daynum)) +
   geom_point() +
-  scale_y_reverse()
+  scale_y_reverse() #if you don't specify thisyour values will be plotted from 0 to waterever but because of how water data is you want zero on top because it is the water's surface
 print(tempvsdepth)
 
 NvsP <-
   ggplot(PeterPaul.chem.nutrients, aes(x = tp_ug, y = tn_ug, color = depth)) +
   geom_point() +
-  geom_smooth(method = lm) +
+  geom_smooth(method = lm) + #lm is a linear model line of fit
   geom_abline(aes(slope = 16, intercept = 0))
 print(NvsP)
 
@@ -168,7 +169,7 @@ What might be more effective ways to display the information? Navigate to the bo
 # Box and whiskers plot
 Nutrientplot3 <-
   ggplot(PeterPaul.chem.nutrients.gathered, aes(x = lakename, y = concentration)) +
-  geom_boxplot(aes(color = nutrient)) # Why didn't we use "fill"?
+  geom_boxplot(aes(color = nutrient)) # Why didn't we use "fill"? Fill changes just the color inside the box so the color command looks beter
 print(Nutrientplot3)
 
 # Dot plot
@@ -177,6 +178,7 @@ Nutrientplot4 <-
   geom_dotplot(aes(color = nutrient, fill = nutrient), binaxis = "y", binwidth = 1, 
                stackdir = "center", position = "dodge", dotsize = 2) #
 print(Nutrientplot4)
+#Position = dodge makes sure no dots are overlayed on one another
 
 # Violin plot
 Nutrientplot5 <-
@@ -186,9 +188,10 @@ print(Nutrientplot5)
 
 # Frequency polygons
 # Using a tidy dataset
+#Problems are that there is no legend with this an easier way to do this is the pivot wider and pivot longer, see line 201
 Nutrientplot6 <-
   ggplot(PeterPaul.chem.nutrients) +
-  geom_freqpoly(aes(x = tn_ug), color = "darkred") +
+  geom_freqpoly(aes(x = tn_ug), color = "darkred") + 
   geom_freqpoly(aes(x = tp_ug), color = "darkblue") +
   geom_freqpoly(aes(x = nh34), color = "blue") +
   geom_freqpoly(aes(x = no23), color = "royalblue") +
@@ -204,7 +207,7 @@ print(Nutrientplot7)
 # Frequency polygons have the risk of becoming spaghetti plots. 
 # See <https://www.data-to-viz.com/caveat/spaghetti.html> for more info.
 
-# Ridgeline plot
+# Ridgeline plot; categorizing y by nutrients and the fill rather than color funciton looks nice here
 Nutrientplot6 <-
   ggplot(PeterPaul.chem.nutrients.gathered, aes(y = nutrient, x = concentration)) +
   geom_density_ridges(aes(fill = lakename), alpha = 0.5) #
