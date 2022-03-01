@@ -35,6 +35,7 @@ theme_set(mytheme)
 A one-way ANOVA is used when you have one categorical explanatory variable with more than two categories. In R, we can run the model with the function `lm` or `aov`, the latter of which will allow us to run post-hoc tests to determine pairwise differences.
 
 Does total litter biomass differ among sites at the Niwot Ridge LTER?
+aka is the mean of the litter biomass different at different sites
 ```{r}
 # Wrangle the data
 Litter.Totals <- Litter %>%
@@ -63,8 +64,11 @@ shapiro.test(Litter.Totals$dryMass[Litter.Totals$plotID == "NIWO_063"])
 shapiro.test(Litter.Totals$dryMass[Litter.Totals$plotID == "NIWO_064"])
 shapiro.test(Litter.Totals$dryMass[Litter.Totals$plotID == "NIWO_067"])
 
+#results: reject null for all values where the pvalue is less than .05
 #results: reject null in all except two: NIWO_057 and NIWO_046
 qqnorm(Litter.Totals$dryMass); qqline(Litter.Totals$dryMass)
+
+#qqnorm shows that the data does not follow a normal distribution 
 
 # Test for equal variance
 # ANOVA is robust against departures from equal variance.
