@@ -108,7 +108,7 @@ A given time series can be made up of several component series:
 
 ### Example: Eno discharge
 
-We will decompose the EnoDischarge.late data frame for illustrative purposes today. It is possible to run time series analysis on detrended data by subtracting the trend component from the data. However, detrending must be done carefully, as many environmental data are bounded by zero but are not treated as such in a decomposition. If you plan to use decomposition to detrend your data, please consult time series analysis guides before proceeding.
+We will decompose the EnoDischarge.late data frame for illustrative purposes today. It is possible to run time series analysis on detrended data by subtracting the trend component from the data. However, detrending must be done carefully, as many environmental data are bounded by zero but are not treated as such in a decomposition. If you plan to use decomposition to detrend your data, please consult time series analysis guides before proceeding. 
 
 We first need to turn the discharge data into a time series object in R. This is done using the `ts` function. Notice we can only specify one column of data and need to specify the period at which the data are sampled. The resulting time series object cannot be viewed like a regular data frame.
 
@@ -116,7 +116,13 @@ Note: time series objects must be equispaced. In our case, we have daily data wi
 
 ```{r}
 EnoDischarge.late_ts <- ts(EnoDischarge.late$discharge.mean, start = c(1985,1), frequency = 365)
+
+head(EnoDischarge.late_ts)
 ```
+
+Alternative way to code lines 117-119
+EnoDischarge.late_ts <- ts(EnoDischarge.late[[8]], start = c(1985,1), frequency = 365)
+frequency 365 lets the code know you are working with daily data 
 
 The `stl` function decomposes the time series object into its component parts. We must specify that the window for seasonal extraction is either "periodic" or a specific number of at least 7. The decomposition proceeds through a loess (locally estimated scatterplot smoothing) function.
 
@@ -185,6 +191,7 @@ summary(wind_data$AWND)
 wind_data_clean <- 
   wind_data %>% 
   mutate( AWND.clean = zoo::na.approx(AWND) )
+#zoo package and na.approx function which is used to interpolate using linear or spline interpolation. 
 
 summary(wind_data_clean$AWND.clean)
 #Note the NA is gone
@@ -206,7 +213,7 @@ Specific tests for monotonic trend analysis are listed below, with assumptions a
 
 Specific test for stochastic trend analysis:
 
-* **Augmented Dickey Fuller**: no seasonality, non-parametric, missing data not allowed. Function: `adf.test()` (package: tseries)
+* **Augmented Dickey Fuller**: no seasonality, non-parametric, missing data not allowed. Function: `adf.test()` (package: tseries). For stochastic trend not monotonic trend.
 
 
 #### Example: monotonic trend analysis
@@ -255,7 +262,7 @@ print(wind_data_plot)
 
 What would we conclude based on these findings? 
 
-> Answer:
+> Answer: There is a decreased trend of the average wind speed overtime.
 
 
 ## Forecasting with Autoregressive and Moving Average Models (ARMA)
