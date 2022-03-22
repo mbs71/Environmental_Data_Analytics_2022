@@ -117,19 +117,27 @@ mapView(counties_sf, zcol = "AWATER")
 
 ```{r read HUCs shapefile}
 #Read the shapefile into an sf dataframe named "huc8_sf"
+huc8_sf<- st_read('./Data/Spatial/NCHUC8.shp')
 
 
 #Reveal the columns
-
+colnames(huc8_sf)
 
 #Check the CRS
-
+st_crs(huc8_sf)
 
 #Examine some records
-
+nrow(huc8_sf)
+head(huc8_sf)
 
 #View the data as a map, colored by the acreage in each
+mapView(huc8_sf, zcol = "ACRES")
 
+#geom_sf is in the sf package
+
+ggplot(data=huc8_sf)+
+  geom_sf(aes(fill=ACRES))+
+  scale_fill_continuous(type='viridis')
 
 ```
 
@@ -139,10 +147,24 @@ mapView(counties_sf, zcol = "AWATER")
 
 ```{r Select the Upper Neuse HUC 8}
 #Read the shapefile into an sf dataframe
-
+huc8_UpperNeuse_sf<- st_read('./Data/Spatial/NCHUC8.shp') %>% 
+  filter(SUBBASIN == 'Upper Neuse') 
 
 
 #Create a map
+mapview(huc8_UpperNeuse_sf)
+
+mapView(
+  huc8_sf, col.regions = 'orange', color = 'orange', alpha = 1)+
+  mapview(
+    huc8_UpperNeuse_sf, col.regions = 'purple', color = 'purple', alpha = 1)
+
+
+
+ggplot()+
+  geom_sf(data=huc8_sf, fill = "orange")+
+  geom_sf(data=huc8_UpperNeuse_sf, fill = "purple")
+
 
 
 ```
@@ -208,6 +230,8 @@ svi2018_nc_raw <- read.csv(
   colClasses = c('FIPS' = 'factor')) %>% 
   select(COUNTY, FIPS, LOCATION, E_TOTPOP, E_POV, E_MINRTY)
 
+#supply col classes with a vector (FIPS) and column name (factor)
+
 #Check structure
 str(svi2018_nc_raw)
 
@@ -239,17 +263,22 @@ ggplot() +
 
 ```{r}
 #Compute HUC8 wind energy
-
-
-
+wind_raw <- read.csv('https://raw.githubusercontent.com/ENV859/EnviroAtlasData/main/Wind_Energy.csv',
+  colClasses = c('HUC_12' = 'factor')) %>% 
+  mutate(HUC_8 = substr(HUC_12,1,8))%>%
+  group_by(HUC_8)%>%
+  summarize(SumWindEnergy = sum(AvgWindEnergy))
+  
 
 #Join to HUC_8 features
-
-
-
+huc8_sf_join = merge(x = huc8_sf,
+                     y = wind_raw, 
+                     by.x = 'HUC_8',
+                     by.y = 'HUC_8')
 
 #View the outputs
-
+ggplot(data=huc8_sf_join) + 
+  
 
 
 ```
@@ -364,18 +393,25 @@ mapview(neuse_counties_sf, zcol='Area_m2')
 
 ```{r EXERCISE: Clipping}
 #Select the Triangle County from the 
+triangle_co<- counties_sf_utm %>%
+  filter(NAME %in% c ('Chatham','Durham', 'Orange', 'Wake'))
 
-
-
-  
 #Grab the intersecting HUC_8s
+triangle_HUCs <- huc8_sf_utm %>%
+  filter(st_intersects(x = ., y = triangle_co, sparse = F))
 
+#selecting row filter as triangle county
+traingle_HUCs <- huc8_sf_utm[triangle_co,]
 
+ggplot()+ 
+  geom_sf(data =  triangle_co, color = 'grey')+
+  geom_sf(data = huc8_sf_utm, color = 'green', fill = NA)+
+  geom_sf(data = triangle_HUCs, color = 'blue', fill = NA)
 
 #Intersect the HUC_8s
-
-
-
+triangle_HUCs.clipped <- traingle_co %>%
+  st_intersection(huc8_sf_utm)
+mapview(triangle_HUCs.clipped)
 
 ```
 

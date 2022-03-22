@@ -76,7 +76,7 @@ Let's read some geospatial data into our coding environment. The file we'll read
 #Read a spatial dataset
 GasPlants <- st_read('https://opendata.arcgis.com/datasets/a0722062315143a7980cebb79a204781_4.geojson')
 #Alternative
-#GasPlants <- st_read('./Data/Spatial/Manufactured_Gas_Plant_Sites.geojson')
+GasPlants <- st_read('./Data/Spatial/Manufactured_Gas_Plant_Sites.geojson')
 
 #Explore
 class(GasPlants)
@@ -115,7 +115,7 @@ EPAair.sites <- EPAair %>%
 
 #Convert to a spatial dataframe
 EPAair.sf <- EPAair.sites %>% 
-  st_as_sf(coords = c('SITE_LONGITUDE','SITE_LATITUDE'),
+  st_as_sf(coords = c('SITE_LONGITUDE','SITE_LATITUDE'), #longitude = x , latitude = y
            crs=4326)
 
 #View the data using the methods above...
@@ -244,8 +244,6 @@ mean_distances <-  rowMeans(distance_matrix)
 #Add as a column to the epa sites
 EPAair.sf.utm  <-  EPAair.sf.utm %>% 
   bind_cols(mean_distances)
-
-
 
 ```
 
