@@ -1,6 +1,6 @@
 ---
 title: "Assignment 09: Data Scraping"
-author: "Student Name"
+author: "Meghan Seyler"
 output: pdf_document
 geometry: margin=2.54cm
 editor_options: 
@@ -30,8 +30,16 @@ This exercise accompanies the lessons in Environmental Data Analytics on data sc
 
 ```{r, message = FALSE}
 #1
+getwd()
 
+library(tidyverse)
+library(rvest)
+library(lubridate)
 
+mytheme_A09 <- theme_classic() +
+  theme(axis.text = element_text(color = "black"), 
+        legend.position = "top")
+theme_set(mytheme_A09)
 ```
 
 2. We will be scraping data from the NC DEQs Local Water Supply Planning website, specifically the Durham's 2019 Municipal Local Water Supply Plan (LWSP): 
@@ -40,12 +48,15 @@ This exercise accompanies the lessons in Environmental Data Analytics on data sc
  * Scroll down and select the LWSP link next to Durham Municipality. 
  * Note the web address: <https://www.ncwater.org/WUDC/app/LWSP/report.php?pwsid=03-32-010&year=2020>
 
-Indicate this website as the as the URL to be scraped. (In other words, read the contents into an
+Indicate this website as the URL to be scraped. (In other words, read the contents into an
 `rvest` webpage object.)
 
 ```{r set.the.scraping.website}
 #2
+LWSP_Durham_URL <- 'https://www.ncwater.org/WUDC/app/LWSP/report.php?pwsid=03-32-010&year=2020'
 
+LWSP_Durham_webpage <- read_html(LWSP_Durham_URL)
+LWSP_Durham_webpage
 
 ```
 
@@ -65,10 +76,25 @@ In the code chunk below scrape these values, assigning them to three separate va
 
 ```{r scrape.the.data}
 #3
-water.system.name <- 
-pswid <- 
-ownership <- 
-max.withdrawals.mgd <- 
+water.system.name <- LWSP_Durham_webpage %>% 
+  html_nodes("div+ table tr:nth-child(1) td:nth-child(2)") %>% 
+  html_text()
+water.system.name
+
+pswid <- LWSP_Durham_webpage %>% 
+  html_nodes("td tr:nth-child(1) td:nth-child(5)") %>% 
+  html_text()
+pswid
+
+ownership <- LWSP_Durham_webpage %>% 
+  html_nodes("div+ table tr:nth-child(2) td:nth-child(4)") %>% 
+  html_text()
+ownership
+
+max.withdrawals.mgd <- LWSP_Durham_webpage %>% 
+  html_nodes("th~ td+ td") %>% 
+  html_text()
+max.withdrawals.mgd
 
 ```
 
@@ -83,12 +109,33 @@ max.withdrawals.mgd <-
 
 ```{r create.a.dataframe.from.scraped.data}
 #4
+#put scraped data into a dataframe and add date column
+LWSP_Durham_df<- data.frame(
+  "Month" = rep(1:12),
+  "Year" = rep(2020,12),
+  "Water_System_Name" = water.system.name, 
+  "PSWID" = pswid,
+  "Ownership" = ownership,
+  "Max_Withdrawals_mgd" = as.numeric(max.withdrawals.mgd)
+)
 
+LWSP_Durham_df
 
+#Modify the dataframe to include the facility name and type as well as the date (as date object)
+LWSP_Durham_df <- LWSP_Durham_df %>% 
+  mutate(Date = my(paste(Month,"-",Year)))
+
+LWSP_Durham_df
 
 #5
-
-
+max_withdrawls_plot<-ggplot(LWSP_Durham_df,aes(x=Date,y=Max_Withdrawals_mgd)) + 
+  geom_line() + 
+  geom_smooth(method="loess",se=FALSE) +
+  labs(title = paste("2020 Water usage data for",water.system.name),
+       subtitle = paste("PSWID", pswid),
+       y="Withdrawal (mgd)",
+       x="Date")
+max_withdrawls_plot
 
 ```
 
@@ -96,16 +143,56 @@ max.withdrawals.mgd <-
 
 ```{r construct.a.scraping.function}
 #6.
+#the base URL
+the_base_url <- 'https://www.ncwater.org/WUDC/app/LWSP/report.php?'
+the_pswid <- '03-32-010'
+the_year <- 2020
+the_scrape_url <- paste0(the_base_url, '/', the_pswid, '/', the_year)
+print(the_scrape_url)
 
-
-
+scrape.it <- function(the_year, pswid_tag){
+  
+  #Retrieve the website contents 
+  the_website <- read_html(paste0('https://www.ncwater.org/WUDC/app/LWSP/report.php?', 
+                                  pswid_tag, '/', the_year))
+  
+  #Set the element address variables
+    water.system.name_tag <- 'div+ table tr:nth-child(1) td:nth-child(2)'
+    pswid_tag <- 'td tr:nth-child(1) td:nth-child(5)'
+    ownership_tag <- 'div+ table tr:nth-child(2) td:nth-child(4)'
+    max.withdrawals.mgd_tag <- 'th~ td+ td'
+  
+  #Scrape the data items
+    water.system.name <- LWSP_Durham_webpagee %>% html_nodes(water.system.name_tag) %>% html_text()
+    pswid <- LWSP_Durham_webpage %>%   html_nodes(pswid_tag) %>%  html_text()
+    ownership <- LWSP_Durham_webpage %>% html_nodes(ownership_tag) %>% html_text()
+    max.withdrawals.mgd <- LWSP_Durham_webpage %>% html_nodes(max.withdrawals.mgd_tag) %>% html_text()
+  
+  #Convert to a dataframe
+  df_withdrawals_max <- data.frame("Month" = rep(1:12),
+                               "Year" = rep(the_year,12),
+                               "Max_Withdrawals_mgd" = as.numeric(max.withdrawals.mgd)) %>% 
+    mutate(Water_System_Name = !!water.system.name,
+           pswid = !!pswid,
+           ownership = !!ownership,
+           Date = my(paste(Month,"-",Year)))
+  
+  #Pause for a moment - scraping etiquette
+  #Sys.sleep(1) #uncomment this if you are doing bulk scraping!
+  
+  #Return the dataframe
+  return(df_withdrawals_max)
+}
 ```
+
 
 7. Use the function above to extract and plot max daily withdrawals for Durham (PWSID='03-32-010') for each month in 2015
 
 ```{r fetch.and.plot.Durham.2015.data}
 #7
-
+#Run the function
+the_df <- scrape.it(2015,'0004-0001')
+view(the_df)
 
 ```
 
