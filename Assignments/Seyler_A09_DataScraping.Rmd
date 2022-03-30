@@ -64,7 +64,7 @@ LWSP_Durham_webpage
 
 * From the "1. System Information" section:
  * Water system name
- * PSWID
+ * PWSID
  * Ownership
  
 * From the "3. Water Supply Sources" section:
@@ -81,10 +81,10 @@ water.system.name <- LWSP_Durham_webpage %>%
   html_text()
 water.system.name
 
-pswid <- LWSP_Durham_webpage %>% 
+pwsid <- LWSP_Durham_webpage %>% 
   html_nodes("td tr:nth-child(1) td:nth-child(5)") %>% 
   html_text()
-pswid
+pwsid
 
 ownership <- LWSP_Durham_webpage %>% 
   html_nodes("div+ table tr:nth-child(2) td:nth-child(4)") %>% 
@@ -114,7 +114,7 @@ LWSP_Durham_df<- data.frame(
   "Month" = rep(1:12),
   "Year" = rep(2020,12),
   "Water_System_Name" = water.system.name, 
-  "PSWID" = pswid,
+  "PWSID" = pwsid,
   "Ownership" = ownership,
   "Max_Withdrawals_mgd" = as.numeric(max.withdrawals.mgd)
 )
@@ -132,7 +132,7 @@ max_withdrawls_plot<-ggplot(LWSP_Durham_df,aes(x=Date,y=Max_Withdrawals_mgd)) +
   geom_line() + 
   geom_smooth(method="loess",se=FALSE) +
   labs(title = paste("2020 Water usage data for",water.system.name),
-       subtitle = paste("PSWID", pswid),
+       subtitle = paste("PWSID", pwsid),
        y="Withdrawal (mgd)",
        x="Date")
 max_withdrawls_plot
@@ -145,26 +145,27 @@ max_withdrawls_plot
 #6.
 #the base URL
 the_base_url <- 'https://www.ncwater.org/WUDC/app/LWSP/report.php?'
-the_pswid <- '03-32-010'
+the_pwsid <- '03-32-010'
 the_year <- 2020
-the_scrape_url <- paste0(the_base_url, '/', the_pswid, '/', the_year)
+the_scrape_url <- paste0(the_base_url, 'pwsid=', the_pwsid, '&year=', the_year)
 print(the_scrape_url)
 
-scrape.it <- function(the_year, pswid_tag){
+scrape.it <- function(the_year, pwsid_tag){
   
   #Retrieve the website contents 
-  the_website <- read_html(paste0('https://www.ncwater.org/WUDC/app/LWSP/report.php?', 
-                                  pswid_tag, '/', the_year))
+  the_website <- read_html(paste0(the_base_url, 'pwsid=', the_pwsid, '&year=', the_year))
   
   #Set the element address variables
-    water.system.name_tag <- 'div+ table tr:nth-child(1) td:nth-child(2)'
-    pswid_tag <- 'td tr:nth-child(1) td:nth-child(5)'
-    ownership_tag <- 'div+ table tr:nth-child(2) td:nth-child(4)'
-    max.withdrawals.mgd_tag <- 'th~ td+ td'
+    water.system.name_new <- 'div+ table tr:nth-child(1) td:nth-child(2)'
+    pwsid_new <- 'td tr:nth-child(1) td:nth-child(5)'
+    ownership_new <- 'div+ table tr:nth-child(2) td:nth-child(4)'
+    max.withdrawals.mgd_new <- "th~ td+ td"
+    max.withdrawls.month.new<-".fancy-table:nth-child(31) tr+ tr th"
+    max.withdrawls.year.new<- the_year
   
   #Scrape the data items
-    water.system.name <- LWSP_Durham_webpagee %>% html_nodes(water.system.name_tag) %>% html_text()
-    pswid <- LWSP_Durham_webpage %>%   html_nodes(pswid_tag) %>%  html_text()
+    water.system.name <- LWSP_Durham_webpage %>% html_nodes(water.system.name_new) %>% html_text()
+    pwsid <- LWSP_Durham_webpage %>%   html_nodes(pwsid_tag) %>%  html_text()
     ownership <- LWSP_Durham_webpage %>% html_nodes(ownership_tag) %>% html_text()
     max.withdrawals.mgd <- LWSP_Durham_webpage %>% html_nodes(max.withdrawals.mgd_tag) %>% html_text()
   
@@ -173,12 +174,12 @@ scrape.it <- function(the_year, pswid_tag){
                                "Year" = rep(the_year,12),
                                "Max_Withdrawals_mgd" = as.numeric(max.withdrawals.mgd)) %>% 
     mutate(Water_System_Name = !!water.system.name,
-           pswid = !!pswid,
+           pwsid = !!pwsid,
            ownership = !!ownership,
            Date = my(paste(Month,"-",Year)))
   
   #Pause for a moment - scraping etiquette
-  #Sys.sleep(1) #uncomment this if you are doing bulk scraping!
+  
   
   #Return the dataframe
   return(df_withdrawals_max)
@@ -191,8 +192,27 @@ scrape.it <- function(the_year, pswid_tag){
 ```{r fetch.and.plot.Durham.2015.data}
 #7
 #Run the function
-the_df <- scrape.it(2015,'0004-0001')
+the_df <- scrape.it(2015,'03-32-010')
 view(the_df)
+
+ggplot(the_df,aes(x=Date,y=Max_Withdrawals_mgd)) + 
+  geom_line() + 
+  geom_smooth(method="loess",se=FALSE) +
+  labs(title = paste("2015 Water usage data for",water.system.name),
+       y="Withdrawal (mgd)",
+       x="Date")
+
+
+the_df <- scrape.it(2015,'03-32-010')
+view(the_df)
+
+# plot data
+ggplot(the_df,aes(x=Date, y=Max_withdrawals_mgd)) +
+  geom_line()+
+  geom_smooth(method="loess",se=FALSE)
+  labs(title = "2015 Durham Max Daily Withdrawals by Month",
+       x = "Date",
+       y = "Max Withdrawals (MGD)")
 
 ```
 
@@ -200,6 +220,8 @@ view(the_df)
 
 ```{r fetch.and.plot.Durham.2015.data}
 #8
+the_df3 <- scrape.it(2015,'01-11-010')
+view(the_df3)
 
 
 ```
