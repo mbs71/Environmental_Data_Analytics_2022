@@ -106,6 +106,7 @@ getwd()
 library(tidyverse)
 library(lubridate)
 library(knitr)
+library(cowplot)
 
 #set theme
 my_theme09 <- theme_classic(base_size = 12) +
@@ -135,8 +136,6 @@ Create an R chunk below to create a processed dataset do the following operation
 -   Drop rows with missing data
 
 ```{r}
-NTL_LTER
-
 NTL_LTER_filter<-NTL_LTER %>% 
  select(lakename:sampledate, depth:po4)%>%
   filter(depth %in% 0)%>%
@@ -147,33 +146,92 @@ NTL_LTER_filter<-NTL_LTER %>%
 
 Create a second R chunk to create a summary dataset with the mean, minimum, maximum, and standard deviation of total nitrogen concentrations for each lake. Create a second summary dataset that is identical except that it evaluates total phosphorus. Customize the chunk options such that the code is run but not displayed in the final document.
 
-```{r}
-NTL_LTER_summary<-NTL_LTER_filter%>%
-  group_by(lakename)
-  summarise(mean = mean(tn_ug),
-            minimum = min(tn_ug),
-            maximum = max(tn_ug),
-            sd = (tn_ug)
-            )
-
-  NTL_LTER_summary
+```{r echo = FALSE}
+#total nitrogen
+  
+NTL_LTER_summary_tn <- NTL_LTER_filter %>%
+group_by(lakename) %>%
+summarize(
+mean_tn_ug = mean(tn_ug),
+min_tn_ug = min(tn_ug),
+max_tn_ug = max(tn_ug),
+sd_tn_ug = sd(tn_ug)
+)
+  
+#total phosphorous 
+  
+NTL_LTER_summary_tp <- NTL_LTER_filter %>%
+group_by(lakename) %>%
+summarize(
+mean_tp_ug = mean(tp_ug),
+min_tp_ug = min(tp_ug),
+max_tp_ug = max(tp_ug),
+sd_tp_ug = sd(tp_ug)
+)
 
 ```
 
 
 Create a third R chunk that uses the function `kable` in the knitr package to display two tables: one for the summary dataframe for total N and one for the summary dataframe of total P. Use the `caption = " "` code within that function to title your tables. Customize the chunk options such that the final table is displayed but not the code used to generate the table.
 
-```{r}
+```{r echo = FALSE}
+knitr::kable(head(NTL_LTER_summary_tn[,1:5]), 
+             "simple", 
+             round(2),
+             col.names = c("Lakename", "Mean", "Minimum","Maximum","Standard Deviation"), 
+             align = 'c',
+             caption = "Summary Statistics of Total Nitrogen (ug)"
+)
 
+knitr::kable(head(NTL_LTER_summary_tp[,1:5]), 
+             "simple", 
+             round(2),
+             col.names = c("Lakename", "Mean", "Minimum","Maximum","Standard Deviation"), 
+             align = 'c',
+             caption = "Summary Statistics of Total Phosphorous (ug)"
+)      
+    
 ```
 
 Create a fourth and fifth R chunk that generates two plots (one in each chunk): one for total N over time with different colors for each lake, and one with the same setup but for total P. Decide which geom option will be appropriate for your purpose, and select a color palette that is visually pleasing and accessible. Customize the chunk options such that the final figures are displayed but not the code used to generate the figures. In addition, customize the chunk options such that the figures are aligned on the left side of the page. Lastly, add a fig.cap chunk option to add a caption (title) to your plot that will display underneath the figure.
 
+```{r echo = FALSE, warning = FALSE, message=FALSE,fig.cap = 'graphs created by Meghan Seyler April 4, 2022'}
+#total nitrogen over time
+nitrogen_plot<-ggplot(data=NTL_LTER_filter, aes(x=sampledate,y=tn_ug,color=lakename)) +
+geom_point(alpha=0.3) +
+geom_smooth(se=F) +
+labs(
+title ='Total Nitrogen over time',
+x = 'Date',
+y = expression(paste('Total N (',mu,'g)')),
+color = "Lake"
+)
+
+#total phosphorous over time
+phosphorous_plot<-ggplot(data=NTL_LTER_filter, aes(x=sampledate,y=tp_ug,color=lakename)) +
+geom_point(alpha=0.3) +
+geom_smooth(se=F) +
+labs(
+title ='Total Phosphorous over time',
+x = 'Date',
+y = expression(paste('Total P (',mu,'g)')),
+color = "Lake"
+)
+
+#align both plots on the left side of the page
+plot_grid(phosphorous_plot, nitrogen_plot, ncol = 1, align = "v")
+
+```
 
 ### Communicating results
 
 Write a paragraph describing your findings from the R coding challenge above. This should be geared toward an educated audience but one that is not necessarily familiar with the dataset. Then insert a horizontal rule below the paragraph. Below the horizontal rule, write another paragraph describing the next steps you might take in analyzing this dataset. What questions might you be able to answer, and what analyses would you conduct to answer those questions?
 
+This challenge utilized the data from the North Temperate Lakes Long Term Ecological Research website. The data ranges from the year 1984-2000 and includes five lakes: Central Long Lake, Crampton Lake, East Long Lake, Hummingnird Lake, Paul Lake, and Peter Lake. The summary statistics demonstrate that East Long Lake has the highest mean total phosphorous, 29.29 (ug), and Hummingbird Lake has the highest mean total nitrogen 1036.67(ug). Interestingly, the phosphorous over time graphical analysis shows that east long lake phosphorous linearly increased with time from the years 1996 to 1998 and then started steadily decreasing from 1998 to 2000.The graphical analysis of nitrogen overtime reveals that the nitrogen levels of three lakes--East Long Lake, West Long Lake, and Peter Lake---all rose and fell synchronously.
+
+_____
+
+For next steps in the analyses for the nitrogen data it would be interesting to see the size and locations of East Long Lake, West Long Lake and Peter Lake to try to determine what factors may have cause them to have a synchronous rise and fall of nitrogen levels. Next steps for the phosphorous data I'd like to investigate what events caused the concentrations in east lake to rise and fall so drastically before and after 1998.
 
 ## KNIT YOUR PDF
 When you have completed the above steps, try knitting your PDF to see if all of the formatting options you specified turned out as planned. This may take some troubleshooting.
